@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>兑换码管理后台</title>
+    <link rel="stylesheet" href="/styles/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-gift"></i>
+                    <h1>礼品兑换管理系统</h1>
+                </div>
+                <div class="header-actions">
+                    <button id="refreshBtn" class="btn-icon" title="刷新数据">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button id="generateCodesBtn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        生成兑换码
+                    </button>
+                    <button id="downloadCodesBtn" class="btn btn-secondary">
+                        <i class="fas fa-download"></i>
+                        <span>下载兑换码</span>
+                    </button>
+                    <button id="exportBtn" class="btn btn-secondary">
+                        <i class="fas fa-download"></i>
+                        导出收货信息
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <div class="container">
+                <!-- 统计卡片区域 -->
+        <div class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div class="stat-header">
+                        <h3>总兑换码数</h3>
+                    </div>
+                    <div class="stat-value" id="total">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-header">
+                        <h3>已兑换</h3>
+                    </div>
+                    <div class="stat-value" id="redeemed">0</div>
+                </div>
+                <!-- <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <div class="stat-header">
+                        <h3>已发货</h3>
+                    </div>
+                    <div class="stat-value" id="shipped">0</div>
+                </div> -->
+            </div>
+        </div>
+
+                <!-- 数据表格区域 -->
+                <div class="content-grid">
+                    <!-- 合并后的兑换码列表表格 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-code"></i>
+                                <h2>兑换码列表</h2>
+                            </div>
+                            <div class="card-actions">
+                                <div class="search-form">
+                                    <div class="search-row">
+                                        <div class="search-group">
+                                            <input type="text" id="phoneSearch" placeholder="手机号">
+                                        </div>
+                                        <div class="search-group">
+                                            <input type="text" id="codeSearch" placeholder="兑换码">
+                                        </div>
+                                        <div class="search-group">
+                                            <select id="redemptionStatusSearch">
+                                                <option value="">兑换状态</option>
+                                                <option value="1">已兑换</option>
+                                                <option value="0">未兑换</option>
+                                            </select>
+                                        </div>
+                                        <!-- <div class="search-group">
+                                            <select id="shippingStatusSearch">
+                                                <option value="">发货状态</option>
+                                                <option value="1">已发货</option>
+                                                <option value="0">未发货</option>
+                                            </select>
+                                        </div> -->
+                                        <div class="search-group">
+                                            <input type="text" id="companySearch" placeholder="公司名称">
+                                        </div>
+                                        <div class="search-actions">
+                                            <button id="searchBtn" class="btn btn-primary">
+                                                <i class="fas fa-search"></i>
+                                                搜索
+                                            </button>
+                                            <button id="resetBtn" class="btn btn-secondary">
+                                                <i class="fas fa-redo"></i>
+                                                重置
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table id="combinedCodesTable" class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>序号</th>
+                                            <th>兑换码</th>
+                                            <th>兑换状态</th>
+                                            <th>兑换时间</th>
+                                            <!-- <th>发货状态</th> -->
+                                            <th>姓名</th>
+                                            <th>手机号</th>
+                                            <th>收货地址</th>
+                                            <th>公司名称</th>
+                                            <th>兑换码有效期</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="combinedCodesTableBody">
+                                        <!-- 数据将通过JavaScript动态加载 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="combinedNoData" class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <h3>暂无兑换码</h3>
+                                <p>请点击上方"生成兑换码"按钮创建新的兑换码</p>
+                            </div>
+                            <div id="combinedLoading" class="loading">
+                                <div class="loading-spinner"></div>
+                                <p>加载中...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+        <!-- 生成兑换码模态框 -->
+        <div id="generateCodesModal" class="modal">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <i class="fas fa-plus-circle"></i>
+                        <h3 id="generateModalTitle">生成兑换码</h3>
+                    </div>
+                    <button class="close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="codeCount">生成数量 <span class="required">*</span></label>
+                        <input type="number" id="codeCount" placeholder="请输入生成数量" min="1" max="10000" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="validFrom">有效期开始时间</label>
+                        <input type="date" id="validFrom" placeholder="请选择有效期开始时间">
+                    </div>
+                    <div class="form-group">
+                        <label for="validTo">有效期结束时间</label>
+                        <input type="date" id="validTo" placeholder="请选择有效期结束时间">
+                    </div>
+                    <!-- 兑换码长度固定为10位，不再需要用户输入 -->
+                    <div class="form-group">
+                        <label for="codeNote">备注</label>
+                        <textarea id="codeNote" placeholder="请输入备注信息" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancelGenerateBtn" class="btn btn-secondary">取消</button>
+                    <button id="confirmGenerateBtn" class="btn btn-primary">生成</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据明细模态框 -->
+        <div id="detailModal" class="modal">
+            <div class="modal-overlay"></div>
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <i class="fas fa-list"></i>
+                        <h3 id="modalTitle">数据明细</h3>
+                    </div>
+                    <button class="close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-container">
+                        <table id="detailTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>兑换码</th>
+                                    <th>姓名</th>
+                                    <th>手机号</th>
+                                    <th>省份</th>
+                                    <th>城市</th>
+                                    <th>区县</th>
+                                    <th>详细地址</th>
+                                    <th>提交时间</th>
+                                     <!--<th>发货状态</th>-->
+                                     <!--<th>发货时间</th>-->
+                                </tr>
+                            </thead>
+                            <tbody id="detailTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="detailNoData" class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>暂无数据</h3>
+                        <p>没有找到相关的明细数据</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="closeModal" class="btn btn-secondary">关闭</button>
+                </div>
+            </div>
+        </div>
+
+    <script src="/scripts/admin.js"></script>
+</body>
+</html>
