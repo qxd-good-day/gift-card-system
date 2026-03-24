@@ -80,7 +80,7 @@ stages:
             commands:
               - echo "同步代码到目标目录..."
               - rm -rf /www/wwwroot/gift-card/*
-              - rsync -av --delete --exclude='.git/' ./ /www/wwwroot/gift-card/
+              - command -v rsync &>/dev/null && rsync -av --delete --exclude='.git/' ./ /www/wwwroot/gift-card/ || cp -a ./ /www/wwwroot/gift-card/
               - echo "代码同步完成"
               - ls -la /www/wwwroot/gift-card
           
