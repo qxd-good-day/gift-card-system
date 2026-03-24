@@ -29,8 +29,12 @@ mkdir -p "$DIR"
 rm -rf "$DIR"/*
 rm -rf "$DIR"/.[!.]*
 
-# 3. 使用 rsync 同步文件
-command -v rsync &>/dev/null && rsync -av --delete --exclude='.git/' "$SOURCE_DIR/" "$DIR/" || cp -a "$SOURCE_DIR"/. "$DIR/"
+# 3. 同步文件
+if command -v rsync &>/dev/null; then
+    rsync -av --delete --exclude='.git/' "$SOURCE_DIR/" "$DIR/"
+else
+    cp -a "$SOURCE_DIR"/. "$DIR/"
+fi
 
 log "代码同步完成!"
 
