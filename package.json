@@ -1,5 +1,5 @@
 {
-  "name": "gift-redemption-system",
+  "name": "gift-card",
   "version": "1.0.0",
   "description": "Supplier Conference Gift Redemption System",
   "main": "src/server/index.js",

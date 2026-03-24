@@ -1,5 +1,0 @@
-Server is running on port 3001
-H5 page: http://localhost:3001/h5
-Admin page: http://localhost:3001/admin
-Generate codes: http://localhost:3001/api/generate-codes
-Connected to SQLite database.
