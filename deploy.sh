@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-APP="gift-card-system"
+APP="gift-card"
 DIR="/opt/$APP"
 PORT=3001
 
