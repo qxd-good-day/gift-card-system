@@ -1,0 +1,120 @@
+version: '1.0'
+name: gift-card-deploy
+type: flow
+
+# 触发器配置
+triggers:
+  - type: git-push
+    branch: main
+    repo: gift-card-system
+
+# 变量定义
+variables:
+  APP_NAME: gift-card
+  DEPLOY_PORT: 3001
+  NODE_VERSION: '18'
+
+# 流水线阶段
+stages:
+  # 第一阶段：代码下载
+  - name: source
+    strategy: parallel
+    jobs:
+      - name: git-source
+        strategy: parallel
+        steps:
+          - name: git-clone
+            commands:
+              - echo "代码已自动下载，当前目录：$(pwd)"
+            env:
+              CODE_DIR: .
+
+  # 第二阶段：构建和安装依赖
+  - name: build
+    strategy: normal
+    jobs:
+      - name: npm-install
+        strategy: normal
+        steps:
+          - name: install-node
+            commands:
+              - echo "使用 Node.js 版本："
+              - node -v || echo "需要在云效主机配置中设置 Node.js 环境"
+          
+          - name: install-dependencies
+            commands:
+              - echo "安装项目依赖..."
+              - npm install --production
+              - echo "依赖安装完成"
+          
+          - name: verify-files
+            commands:
+              - echo "验证关键文件..."
+              - ls -la
+              - test -f package.json && echo "✓ package.json 存在" || echo "✗ package.json 缺失"
+              - test -f src/server/index.js && echo "✓ 主程序存在" || echo "✗ 主程序缺失"
+
+  # 第三阶段：部署到服务器
+  - name: deploy
+    strategy: normal
+    jobs:
+      - name: deploy-to-server
+        strategy: normal
+        steps:
+          - name: pre-deploy-check
+            commands:
+              - echo "部署前检查..."
+              - echo "当前工作目录：$(pwd)"
+              - echo "Node.js 版本：$(node -v)"
+              - echo "npm 版本：$(npm -v)"
+              - echo "PM2 版本：$(pm2 -v || echo '未安装')"
+          
+          - name: prepare-environment
+            commands:
+              - echo "准备部署环境..."
+              - mkdir -p /www/wwwroot/gift-card/database/backups
+              - mkdir -p /www/wwwroot/gift-card/src/public/qrcodes
+              - echo "目录创建完成"
+          
+          - name: sync-code
+            commands:
+              - echo "同步代码到目标目录..."
+              - rm -rf /www/wwwroot/gift-card/*
+              - rsync -av --delete --exclude='.git/' ./ /www/wwwroot/gift-card/
+              - echo "代码同步完成"
+              - ls -la /www/wwwroot/gift-card
+          
+          - name: install-production-deps
+            commands:
+              - cd /www/wwwroot/gift-card
+              - echo "安装生产环境依赖..."
+              - npm install --production
+              - echo "依赖安装完成"
+          
+          - name: restart-service
+            commands:
+              - echo "重启服务..."
+              - cd /www/wwwroot/gift-card
+              - pm2 describe gift-card > /dev/null 2>&1 && pm2 restart gift-card --update-env || pm2 start src/server/index.js --name gift-card
+              - pm2 save
+              - echo "服务重启完成"
+          
+          - name: health-check
+            commands:
+              - echo "等待服务启动..."
+              - sleep 5
+              - echo "执行健康检查..."
+              - curl -sf http://localhost:3001/h5 && echo "✓ 健康检查通过" || echo "✗ 健康检查失败"
+              - pm2 list
+              - echo "部署完成！"
+
+# 通知配置
+notifications:
+  on_success:
+    - type: DingTalk
+      receiver: ""  # 填写钉钉机器人 webhook
+      message_template: "部署成功：gift-card 系统已更新"
+  on_failure:
+    - type: DingTalk
+      receiver: ""  # 填写钉钉机器人 webhook
+      message_template: "部署失败：请检查 gift-card 系统"

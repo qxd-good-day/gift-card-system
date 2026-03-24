@@ -2,7 +2,7 @@
 set -e
 
 APP="gift-card"
-DIR="/opt/$APP"
+DIR="/www/wwwroot/$APP"
 PORT=3001
 
 log() { echo -e "\033[32m[INFO]\033[0m $1"; }
@@ -16,10 +16,8 @@ command -v pm2 &>/dev/null  || npm install -g pm2
 log "环境: Node $(node -v) | PM2 $(pm2 -v)"
 
 # ==========================================
-# [新增] 关键步骤：从云效工作区同步代码到目标目录
+# 从云效工作区同步代码到目标目录
 # ==========================================
-# 云效默认将代码拉取到当前工作目录 (.) 或配置的子目录
-# 假设云效流水线的工作目录就是当前脚本执行的目录 (.)
 SOURCE_DIR="$(pwd)"
 
 log "正在从 [$SOURCE_DIR] 同步代码到 [$DIR] ..."
@@ -27,17 +25,14 @@ log "正在从 [$SOURCE_DIR] 同步代码到 [$DIR] ..."
 # 1. 创建目标目录
 mkdir -p "$DIR"
 
-# 2. 清理目标目录中的旧代码 (保留数据库备份以防万一，可选)
-# 这里我们选择全量覆盖，确保文件一致性
+# 2. 清理目标目录中的旧代码
 rm -rf "$DIR"/*
-rm -rf "$DIR"/.[!.]*  # 删除隐藏文件，但保留 . 和 ..
+rm -rf "$DIR"/.[!.]*
 
-# 3. 复制所有文件 (包括 package.json, src, database 等)
-# 使用 cp -a 保持属性，或 rsync
-cp -a "$SOURCE_DIR/." "$DIR/"
+# 3. 使用 rsync 同步文件
+command -v rsync &>/dev/null && rsync -av --delete --exclude='.git/' "$SOURCE_DIR/" "$DIR/" || cp -a "$SOURCE_DIR"/. "$DIR/"
 
 log "代码同步完成!"
-# ==========================================
 
 # 初始化子目录 & 安装依赖
 mkdir -p "$DIR/database/backups" "$DIR/src/public/qrcodes"

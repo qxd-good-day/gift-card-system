@@ -2,7 +2,7 @@
 set -e
 
 SERVER="root@<服务器IP>"  # 修改为你的服务器地址
-DIR="/opt/gift-card-system"
+DIR="/www/wwwroot/gift-card"
 
 echo "同步代码..."
 rsync -avz --delete \
